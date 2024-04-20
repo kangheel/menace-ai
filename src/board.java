@@ -1,11 +1,17 @@
+import java.util.HashSet;
+
 public class board {
     // variables
     private int[] board_eq0 = new int[9];
+    // 90 cw
     private int[] board_eq1 = new int[9];
+    // 180 cw
     private int[] board_eq2 = new int[9];
+    // 270 cw (90 ccw)
     private int[] board_eq3 = new int[9];
+    int spaces;
     
-    // init
+    // constructor
     public board(int[] row1, int[] row2, int[] row3) {
         // row 1 init
         for (int i = 0; i < row1.length; i++) {
@@ -21,17 +27,56 @@ public class board {
         for (int i = 0; i < row3.length; i++) {
             board_eq0[6+i] = row3[i];
         }
-        update_board_eqs();
+        update_vars();
+
+        spaces = 0;
+        for (int i = 0; i < board_eq0.length; i++) {
+            if (board_eq0[i] == 0) {
+                spaces++;
+            }
+        }
     }
 
-    // default init
+    // default constructor
     public board() {
         for (int i = 0; i < board_eq0.length; i++) {
             board_eq0[i] = 0;
         }
-        update_board_eqs();
+        update_vars();
+        spaces = 9;
     }
 
+    // copy constructor
+    public board(board copy) {
+        this.board_eq0 = copy.board_eq0.clone();
+        this.spaces = copy.spaces;
+        update_vars();
+    }
+    
+    // hash constructor
+    public board(String hash) {
+        int[] row1 = new int[] {hash.charAt(0)-'0',hash.charAt(1)-'0',hash.charAt(2)-'0'};
+        int[] row2 = new int[] {hash.charAt(3)-'0',hash.charAt(4)-'0',hash.charAt(5)-'0'};
+        int[] row3 = new int[] {hash.charAt(6)-'0',hash.charAt(7)-'0',hash.charAt(8)-'0'};
+
+        for (int i = 0; i < row1.length; i++) {
+            board_eq0[0+i] = row1[i];
+        }
+
+        // row 2 init
+        for (int i = 0; i < row2.length; i++) {
+            board_eq0[3+i] = row2[i];
+        }
+
+        // row 3 init
+        for (int i = 0; i < row3.length; i++) {
+            board_eq0[6+i] = row3[i];
+        }
+
+        update_vars();
+    }
+
+    // toString
     public String toString() {
         String str = "";
         for (int i = 0; i < board_eq0.length; i++) {
@@ -41,9 +86,28 @@ public class board {
             }
             str += board_eq0[i]+" | ";
         }
-        return str.substring(0,str.length()-2)+"\n";
+        return str.substring(0,str.length()-2);
     }
 
+    // generates hash
+    public String hash() {
+        String str = "";
+        for (int i = 0; i < board_eq0.length; i++) {
+            str += board_eq0[i];
+        }
+        return str;
+    }
+
+    // generates hash given int[] board
+    private String hash(int[] b) {
+        String str = "";
+        for (int i = 0; i < b.length; i++) {
+            str += b[i];
+        }
+        return str;
+    }
+
+    // rotate board clockwise by 90 deg
     private int[] rotate_cw(int[] b) {
         int[] row1 = new int[] {b[0+3*2], b[0+3*1], b[0+3*0]};
         int[] row2 = new int[] {b[1+3*2], b[1+3*1], b[1+3*0]};
@@ -67,7 +131,80 @@ public class board {
         return board;
     }
 
-    private void update_board_eqs() {
+    // same as reflect_x when combined with rotations
+    private int[] reflect_y(int[] b) {
+        int[] row1 = new int[] {b[2], b[1], b[0]};
+        int[] row2 = new int[] {b[5], b[4], b[3]};
+        int[] row3 = new int[] {b[8], b[7], b[6]};
+        
+        int[] board = new int[9];
+        for (int i = 0; i < row1.length; i++) {
+            board[0+i] = row1[i];
+        }
+
+        // row 2 init
+        for (int i = 0; i < row2.length; i++) {
+            board[3+i] = row2[i];
+        }
+
+        // row 3 init
+        for (int i = 0; i < row3.length; i++) {
+            board[6+i] = row3[i];
+        }
+
+        return board;
+    }
+
+    // reflect around x axis (rows)
+    private int[] reflect_x(int[] b) {
+        int[] row1 = new int[] {b[6], b[7], b[8]};
+        int[] row2 = new int[] {b[3], b[4], b[5]};
+        int[] row3 = new int[] {b[0], b[1], b[2]};
+        
+        int[] board = new int[9];
+        for (int i = 0; i < row1.length; i++) {
+            board[0+i] = row1[i];
+        }
+
+        // row 2 init
+        for (int i = 0; i < row2.length; i++) {
+            board[3+i] = row2[i];
+        }
+
+        // row 3 init
+        for (int i = 0; i < row3.length; i++) {
+            board[6+i] = row3[i];
+        }
+
+        return board;
+    }
+
+    // reflect around y = x (reflect x then reflect y)
+    private int[] reflect_yx(int[] b) {
+        int[] row1 = new int[] {b[8], b[5], b[2]};
+        int[] row2 = new int[] {b[7], b[4], b[1]};
+        int[] row3 = new int[] {b[6], b[3], b[0]};
+        
+        int[] board = new int[9];
+        for (int i = 0; i < row1.length; i++) {
+            board[0+i] = row1[i];
+        }
+
+        // row 2 init
+        for (int i = 0; i < row2.length; i++) {
+            board[3+i] = row2[i];
+        }
+
+        // row 3 init
+        for (int i = 0; i < row3.length; i++) {
+            board[6+i] = row3[i];
+        }
+
+        return board;
+    }
+
+    // updates board states
+    private void update_vars() {
         board_eq1 = rotate_cw(board_eq0);
         board_eq2 = rotate_cw(board_eq1);
         board_eq3 = rotate_cw(board_eq2);
@@ -110,13 +247,44 @@ public class board {
             return -1;
         }
         board_eq0[3*r+c] = m;
-        update_board_eqs();
+        update_vars();
+        spaces--;
 
         return m == 1 ? 2 : 1;
     }
 
+    public String boardhashes() {
+        HashSet<String> hashes = new HashSet<>();
+        hashes.add(hash(board_eq0));
+        hashes.add(hash(board_eq1));
+        hashes.add(hash(board_eq2));
+        hashes.add(hash(board_eq3));
+
+        hashes.add(hash(reflect_x(board_eq0)));
+        hashes.add(hash(reflect_x(board_eq1)));
+        hashes.add(hash(reflect_x(board_eq2)));
+        hashes.add(hash(reflect_x(board_eq3)));
+
+        // str += hash(reflect_y(board_eq0))+",";
+        // str += hash(reflect_y(board_eq1))+",";
+        // str += hash(reflect_y(board_eq2))+",";
+        // str += hash(reflect_y(board_eq3))+",";
+
+        hashes.add(hash(reflect_yx(board_eq0)));
+        hashes.add(hash(reflect_yx(board_eq1)));
+        hashes.add(hash(reflect_yx(board_eq2)));
+        hashes.add(hash(reflect_yx(board_eq3)));
+        
+        String str = "";
+        for (String hash : hashes) {
+            str += hash + ",";
+        }
+        return str.substring(0, str.length()-1);
+    }
+
+
     /* prints board states */
-    
+
     // public String boardstates() {
     //     String str0 = "";
     //     for (int i = 0; i < board_eq0.length; i++) {

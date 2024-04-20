@@ -10,7 +10,7 @@ public class boardstatemaker {
         board start = new board();
         id = 0;
         indexed = new HashSet<>();
-        // export.println("-");
+        export.println("-");
         next_turn(start, 1, export);
         export.close();
     }
@@ -36,10 +36,14 @@ public class boardstatemaker {
                     indexed.add(chash);
                 }
                 if (! cur.is_winner()) {
-                    // export.println(id+".");
+                    export.println(id+".");
                     id++;
+                    
                     export.println(cur.hash());
-                    // export.println("-");
+                    // comment out line above and uncomment below if you want to generate hashes instead
+                    // export.println(cur.hash());
+                    
+                    export.println("-");
                     next_turn(cur, nt, export);
                 }
             }

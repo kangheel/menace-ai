@@ -1,0 +1,25 @@
+Matchbox Educable Noughts and Crosses Engine (MENACE)
+---
+Current progress:
+- 'board.java'
+  - public board(int[] row1, int[] row2, int[] row3)
+    - where row1, row2, row3 are int[3]
+  - public board()
+    - initializes an empty board with values 0
+  - public board(board copy)
+    - initializes a copy of the board provided
+  - public board(String hash)
+    - initializes a board with the given hash
+  - public board(String hash)
+  - public String hash()
+  - public boolean is_winner()
+  - public int next_turn(int r, int c, int m)
+    - updates the board with move at (r,c)
+    - returns -1 if unsucessful, 0 if 0's turn next, 1 if 1's turn next 
+  - public String boardhashes()
+    - returns all the equivalent board hashes (after rotation, reflection, and combination of the two)
+- 'game.java'
+- 'boardstatemaker.java'
+  - creates 'boardstates.txt' file that will be the template for the MENACE boxes
+- 'validate_boardstates.java' validates that 'boardstates.txt' has no duplicates including its rotational/reflectional equivalents
+  - in order to validate 'boardstates.txt', there must only be hashes in 'boardstates.txt'

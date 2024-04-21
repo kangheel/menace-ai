@@ -14,6 +14,8 @@ public class board {
     // state = 0 if it is a game board
     // state = 1 if it is a freqency table
     int state;
+    int REWARD;
+    int CONSEQ;
     
     // constructor
     public board(int[] row1, int[] row2, int[] row3, int state) {
@@ -126,6 +128,31 @@ public class board {
 
         update_vars();
         this.state = state;
+    }
+
+    public board(String hash, int state, int REWARD, int CONSEQ) {
+        int[] row1 = new int[] {hash.charAt(0)-'0',hash.charAt(1)-'0',hash.charAt(2)-'0'};
+        int[] row2 = new int[] {hash.charAt(3)-'0',hash.charAt(4)-'0',hash.charAt(5)-'0'};
+        int[] row3 = new int[] {hash.charAt(6)-'0',hash.charAt(7)-'0',hash.charAt(8)-'0'};
+
+        for (int i = 0; i < row1.length; i++) {
+            board_eq0[0+i] = row1[i];
+        }
+
+        // row 2 init
+        for (int i = 0; i < row2.length; i++) {
+            board_eq0[3+i] = row2[i];
+        }
+
+        // row 3 init
+        for (int i = 0; i < row3.length; i++) {
+            board_eq0[6+i] = row3[i];
+        }
+
+        update_vars();
+        this.state = state;
+        this.REWARD = REWARD;
+        this.CONSEQ = CONSEQ;
     }
 
     // toString
@@ -432,6 +459,40 @@ public class board {
             return sum;
         }
         throw new IncompatibleStateException(state, 1);
+    }
+
+    public int reward_freq (int pos) {
+        if (state == 1) {
+            String hash = hash();
+            String newhash = "";
+            for (int i = 0; i < hash.length(); i++) {
+                if (i != pos) {
+                    newhash += hash.charAt(i);
+                }
+                else {
+                    newhash += Math.min(hash.charAt(i)-'0'+REWARD,9)+"";
+                }
+            }
+            board_eq0 = new board(newhash).to_intarr();
+        }
+        return 0;
+    }
+
+    public int conseq_freq (int pos) {
+        if (state == 1) {
+            String hash = hash();
+            String newhash = "";
+            for (int i = 0; i < hash.length(); i++) {
+                if (i != pos) {
+                    newhash += hash.charAt(i);
+                }
+                else {
+                    newhash += Math.max(hash.charAt(i)-'0'+CONSEQ,0)+"";
+                }
+            }
+            board_eq0 = new board(newhash).to_intarr();
+        }
+        return 0;
     }
 
     /* prints board states */

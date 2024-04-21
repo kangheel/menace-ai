@@ -3,16 +3,25 @@ import java.io.PrintWriter;
 import java.util.HashSet;
 
 public class boardstatemaker {
-    private static int id;
     private static HashSet<String> indexed;
     public static void main(String[] args) throws FileNotFoundException {
-        PrintWriter export = new PrintWriter("boardstates.txt");
-        board start = new board();
-        id = 0;
+        PrintWriter menace_one = new PrintWriter("menace_one.txt");
+        board menace_one_board = new board();
         indexed = new HashSet<>();
-        export.println("-");
-        next_turn(start, 1, export);
-        export.close();
+        menace_one.println("-");
+        menace_one.println("000000000,555555555");
+        menace_one.println("-");
+        next_turn(menace_one_board, 1, menace_one);
+        menace_one.close();
+
+        PrintWriter menace_two = new PrintWriter("menace_two.txt");
+        board menace_two_board = new board();
+        indexed = new HashSet<>();
+        menace_two.println("-");
+        menace_two.println("000000000,555555555");
+        menace_two.println("-");
+        next_turn(menace_two_board, 1, menace_two);
+        menace_two.close();
     }
 
     private static void next_turn(board start, int turn, PrintWriter export) {
@@ -36,10 +45,12 @@ public class boardstatemaker {
                     indexed.add(chash);
                 }
                 if (! cur.is_winner()) {
-                    export.println(id+".");
-                    id++;
-                    
-                    export.println(cur.hash());
+                    String h = cur.hash();
+                    String pr = "";
+                    for (int i = 0; i < h.length(); i++) {
+                        pr += h.charAt(i) == '0' ? "5" : "0";
+                    }
+                    export.println(h+","+pr);
                     // comment out line above and uncomment below if you want to generate hashes instead
                     // export.println(cur.hash());
                     

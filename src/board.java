@@ -11,8 +11,12 @@ public class board {
     private int[] board_eq3 = new int[9];
     int spaces;
     
+    // state = 0 if it is a game board
+    // state = 1 if it is a freqency table
+    int state;
+    
     // constructor
-    public board(int[] row1, int[] row2, int[] row3) {
+    public board(int[] row1, int[] row2, int[] row3, int state) {
         // row 1 init
         for (int i = 0; i < row1.length; i++) {
             board_eq0[0+i] = row1[i];
@@ -35,6 +39,22 @@ public class board {
                 spaces++;
             }
         }
+        
+        this.state = state;
+    }
+
+    public board(int[] board, int state) {
+        board_eq0 = board;
+        update_vars();
+
+        spaces = 0;
+        for (int i = 0; i < board_eq0.length; i++) {
+            if (board_eq0[i] == 0) {
+                spaces++;
+            }
+        }
+        
+        this.state = state;
     }
 
     // default constructor
@@ -44,12 +64,21 @@ public class board {
         }
         update_vars();
         spaces = 9;
+        state = 0;
     }
 
     // copy constructor
     public board(board copy) {
         this.board_eq0 = copy.board_eq0.clone();
         this.spaces = copy.spaces;
+        this.state = copy.state;
+        update_vars();
+    }
+
+    public board(board copy, int state) {
+        this.board_eq0 = copy.board_eq0.clone();
+        this.spaces = copy.spaces;
+        this.state = state;
         update_vars();
     }
     
@@ -74,6 +103,29 @@ public class board {
         }
 
         update_vars();
+    }
+
+    public board(String hash, int state) {
+        int[] row1 = new int[] {hash.charAt(0)-'0',hash.charAt(1)-'0',hash.charAt(2)-'0'};
+        int[] row2 = new int[] {hash.charAt(3)-'0',hash.charAt(4)-'0',hash.charAt(5)-'0'};
+        int[] row3 = new int[] {hash.charAt(6)-'0',hash.charAt(7)-'0',hash.charAt(8)-'0'};
+
+        for (int i = 0; i < row1.length; i++) {
+            board_eq0[0+i] = row1[i];
+        }
+
+        // row 2 init
+        for (int i = 0; i < row2.length; i++) {
+            board_eq0[3+i] = row2[i];
+        }
+
+        // row 3 init
+        for (int i = 0; i < row3.length; i++) {
+            board_eq0[6+i] = row3[i];
+        }
+
+        update_vars();
+        this.state = state;
     }
 
     // toString
@@ -229,13 +281,44 @@ public class board {
         return board[0] != 0 && board[0] == board[3] && board[3] == board[6];
     }
 
+    private int who_horizontal_winner(int[] board) {
+        return is_horizontal_winner(board) ? board[0] : -1;
+    }
+
+    private int who_midhorizontal_winner(int[] board) {
+        return is_midhorizontal_winner(board) ? board[3] : -1;
+    }
+
+    private int who_diag_winner(int[] board) {
+        return is_diag_winner(board) ? board[0] : -1;
+    }
+
+    private int who_vertical_winner(int[] board) {
+        return is_vertical_winner(board) ? board[0] : -1;
+    }
+
     public boolean is_winner() {
         boolean b0win = is_horizontal_winner(board_eq0) || is_midhorizontal_winner(board_eq0) || is_diag_winner(board_eq0) || is_vertical_winner(board_eq0);
-        boolean b1win = is_horizontal_winner(board_eq1) || is_midhorizontal_winner(board_eq1)|| is_diag_winner(board_eq1) || is_vertical_winner(board_eq1);
-        boolean b2win = is_horizontal_winner(board_eq2) || is_midhorizontal_winner(board_eq2)|| is_diag_winner(board_eq2) || is_vertical_winner(board_eq2);
-        boolean b3win = is_horizontal_winner(board_eq3) || is_midhorizontal_winner(board_eq3)|| is_diag_winner(board_eq3) || is_vertical_winner(board_eq3);
+        boolean b1win = is_horizontal_winner(board_eq1) || is_midhorizontal_winner(board_eq1) || is_diag_winner(board_eq1) || is_vertical_winner(board_eq1);
+        boolean b2win = is_horizontal_winner(board_eq2) || is_midhorizontal_winner(board_eq2) || is_diag_winner(board_eq2) || is_vertical_winner(board_eq2);
+        boolean b3win = is_horizontal_winner(board_eq3) || is_midhorizontal_winner(board_eq3) || is_diag_winner(board_eq3) || is_vertical_winner(board_eq3);
 
         return b0win || b1win || b2win || b3win;
+    }
+
+    public int who_winner() {
+        for (int[] board : new int[][] {board_eq0, board_eq1, board_eq2, board_eq3}) {
+            for (int i : new int[] {who_diag_winner(board), who_horizontal_winner(board), who_midhorizontal_winner(board), who_vertical_winner(board)}) {
+                if (i != -1) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    public boolean is_over() {
+        return spaces == 0 || is_winner();
     }
 
     // updates the board with move at (r,c)
@@ -251,6 +334,63 @@ public class board {
         spaces--;
 
         return m == 1 ? 2 : 1;
+    }
+
+    public int[] get_random_move(int sum) throws IncompatibleStateException {
+        int random = (int) (Math.random()*sum);
+        int i = random == 0 ? 0 : -1;
+        for (; i < board_eq0.length && random > 0; i++) {
+            random -= board_eq0[i+1];
+        }
+
+        return new int[] {i / 3, i % 3};
+    }
+
+    public int[] to_intarr() {
+        return board_eq0;
+    }
+
+    public String morph_hash(String to, String hash) {
+        String from = hash();
+        if (from.equals(to)) {
+            return hash; 
+        }
+
+        String no_ref = rotate_hash(from, to, hash);
+        String ref_x = rotate_hash(new board(reflect_x(new board(from).to_intarr()),0).hash(),
+                                   to,
+                                   new board(reflect_x(new board(hash).to_intarr()),0).hash());
+        String ref_yx = rotate_hash(new board(reflect_yx(new board(from).to_intarr()),0).hash(),
+                                    to,
+                                    new board(reflect_yx(new board(hash).to_intarr()),0).hash());
+
+        for (String h : new String[] {no_ref, ref_x, ref_yx}) {
+            if (! h.equals("")) {
+                return h;
+            }
+        }
+        return "";
+    }
+
+    public String rotate_hash(String from, String to, String hash) {
+        String rotatefrom = new board(rotate_cw(new board(from).to_intarr()),0).hash();
+        String rotatehash = new board(rotate_cw(new board(hash).to_intarr()),0).hash();
+        if (rotatefrom.equals(to)) {
+            return rotatehash;
+        }
+
+        rotatefrom = new board(rotate_cw(new board(rotatefrom).to_intarr()),0).hash();
+        rotatehash = new board(rotate_cw(new board(rotatehash).to_intarr()),0).hash();
+        if (rotatefrom.equals(to)) {
+            return rotatehash;
+        }
+
+        rotatefrom = new board(rotate_cw(new board(rotatefrom).to_intarr()),0).hash();
+        rotatehash = new board(rotate_cw(new board(rotatehash).to_intarr()),0).hash();
+        if (rotatefrom.equals(to)) {
+            return rotatehash;
+        }
+        return "";
     }
 
     public String boardhashes() {
@@ -282,6 +422,17 @@ public class board {
         return str.substring(0, str.length()-1);
     }
 
+    public int sum() throws IncompatibleStateException {
+        if (state == 1) {
+            String hash = hash();
+            int sum = 0;
+            for (char c : hash.toCharArray()) {
+                sum += c-'0';
+            }
+            return sum;
+        }
+        throw new IncompatibleStateException(state, 1);
+    }
 
     /* prints board states */
 

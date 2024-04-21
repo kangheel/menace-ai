@@ -20,5 +20,6 @@ public class validate_boardstates {
                 indexed.add(hash);
             }
         }
+        scanner.close();
     }
 }
